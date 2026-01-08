@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nhập TKB Bách Khoa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-10">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-6">
+        <h2 class="text-2xl font-bold mb-4 text-red-600">Nhập File Excel TKB</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 mb-4 text-sm text-blue-700 bg-blue-100 rounded-lg">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div class="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-700">
+                Xử lý & Lưu Database
+            </button>
+        </form>
+        
+    </div>
+</body>
+</html>

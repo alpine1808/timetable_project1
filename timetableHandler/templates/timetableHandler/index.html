@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký Tín chỉ BK - Project I</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden flex flex-col font-sans">
+
+    <header class="bg-red-700 text-white p-4 shadow-md flex justify-between items-center z-10">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-calendar-check text-2xl"></i>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">Hệ thống Xếp TKB</h1>
+                <p class="text-xs text-red-200">Mô phỏng Project I - K66+</p>
+            </div>
+        </div>
+        <div class="text-sm bg-red-800 py-1 px-3 rounded shadow-inner">
+            Học kỳ 2025.1
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <div class="w-[40%] bg-white border-r border-gray-200 flex flex-col shadow-lg z-0">
+            <div class="p-4 border-b bg-gray-50">
+                <form method="get" action="{% url 'timetable_view' %}">
+                    <label class="block text-gray-700 text-xs font-bold mb-2 uppercase">Tìm môn học (Mã HP hoặc Tên):</label>
+                    <div class="flex gap-2">
+                        <input type="text" name="q" value="{{ search_query }}" 
+                               class="flex-1 shadow-sm appearance-none border border-gray-300 rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                               placeholder="VD: IT3040, Giải tích, 123456...">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded shadow transition">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1 italic">* Nhập chính xác Mã HP để lọc mã E/SIE.</p>
+                </form>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-100 space-y-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="text-sm p-3 rounded shadow-sm border-l-4 {{ message.tags|yesno:'bg-green-50 border-green-500 text-green-700,bg-red-50 border-red-500 text-red-700' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% for item in results %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative group hover:shadow-md transition duration-200">
+                    
+                    <div class="p-4 pb-2 flex justify-between items-start">
+                        <div class="flex-1 pr-2">
+                            <h3 class="font-bold text-gray-800 text-lg leading-snug flex flex-wrap items-center gap-2">
+                                {{ item.main.course_name }}
+                                {% if item.main.requires_experiment %}
+                                    <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded-full border border-yellow-400 font-bold uppercase tracking-wider shadow-sm">
+                                        <i class="fas fa-flask"></i> Cần TN
+                                    </span>
+                                {% endif %}
+                            </h3>
+                            
+                            <div class="text-sm text-gray-500 mt-1 flex items-center gap-2">
+                                <span class="font-mono bg-gray-100 px-1.5 py-0.5 rounded border text-xs font-bold">{{ item.main.course_code }}</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                                <span class="font-mono font-bold text-blue-700">{{ item.main.class_code }}</span>
+                                {% if item.main.class_type %}
+                                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 uppercase">{{ item.main.class_type }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if not item.conflict %}
+                            <a href="{% url 'add_class' item.main.id %}" class="shrink-0 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow active:scale-95 transition">
+                                <i class="fas fa-plus"></i> Chọn
+                            </a>
+                        {% else %}
+                            <button disabled class="shrink-0 bg-gray-100 text-gray-400 px-3 py-1.5 rounded cursor-not-allowed text-sm font-bold border">
+                                <i class="fas fa-ban"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% if item.main.notes %}
+                    <div class="px-4 py-1">
+                        <div class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100 italic flex items-start gap-1">
+                            <i class="fas fa-info-circle mt-0.5"></i> {{ item.main.notes }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="px-4 py-2 text-sm text-gray-600 grid grid-cols-2 gap-y-1 gap-x-4">
+                        <div class="flex items-center gap-2"><i class="fas fa-calendar-day w-4 text-center text-gray-400"></i> Thứ {{ item.main.day }}</div>
+                        <div class="flex items-center gap-2"><i class="fas fa-clock w-4 text-center text-gray-400"></i> {{ item.main.start_time }} - {{ item.main.end_time }}</div>
+                        <div class="col-span-2 flex items-center gap-2"><i class="fas fa-map-marker-alt w-4 text-center text-gray-400"></i> {{ item.main.room }}</div>
+                        <div class="col-span-2 text-xs text-gray-400 mt-1 pl-6">Tuần: {{ item.main.week_list }}</div>
+                    </div>
+
+                    {% if item.sub %}
+                    <div class="bg-blue-50 border-t border-blue-100 px-4 py-2 mt-2">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold text-blue-800 uppercase tracking-wide bg-blue-200 px-1.5 rounded">Đi kèm</span>
+                            <span class="font-mono text-xs font-bold text-blue-700">{{ item.sub.class_code }}</span>
+                        </div>
+                        <div class="text-sm text-gray-700 grid grid-cols-2 gap-4">
+                            <span>Thứ {{ item.sub.day }}: {{ item.sub.start_time }} - {{ item.sub.end_time }}</span>
+                            <span class="text-right font-medium">{{ item.sub.room }}</span>
+                        </div>
+                        {% if item.sub.notes %}
+                            <div class="text-xs text-blue-500 italic mt-1">{{ item.sub.notes }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if item.conflict %}
+                    <div class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-20">
+                        <div class="bg-red-50 text-red-700 px-4 py-2 rounded-lg shadow-lg border border-red-200 font-bold text-sm flex items-center gap-2 animate-pulse">
+                            <i class="fas fa-exclamation-triangle"></i> {{ item.conflict_reason }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                    {% if search_query %}
+                        <div class="text-center text-gray-500 mt-10">
+                            <i class="fas fa-box-open text-4xl mb-2 text-gray-300"></i>
+                            <p>Không tìm thấy lớp nào khớp với "<b>{{ search_query }}</b>"</p>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-gray-400 mt-10">
+                            <i class="fas fa-search text-4xl mb-2 text-gray-200"></i>
+                            <p>Nhập Mã HP hoặc Tên môn để bắt đầu...</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="w-[60%] bg-gray-50 flex flex-col">
+            <div class="p-4 border-b bg-white flex justify-between items-center shadow-sm">
+                <h2 class="font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-list-ul text-blue-600"></i> Danh sách lớp đã chọn
+                </h2>
+                
+                <div class="flex items-center gap-3">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">{{ schedule|length }} lớp</span>
+                    
+                    <a href="{% url 'export_excel' %}" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded shadow flex items-center gap-2 transition transform hover:scale-105">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </a>
+                </div>
+            </div>
+            
+            <div class="flex-1 p-6 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {% for item in schedule %}
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500 relative group hover:shadow-md transition">
+                        <a href="{% url 'remove_class' item.id %}" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition p-1" title="Hủy lớp này">
+                            <i class="fas fa-times"></i>
+                        </a>
+
+                        <div class="pr-6">
+                            <div class="font-bold text-blue-900 truncate" title="{{ item.class_info.course_name }}">{{ item.class_info.course_name }}</div>
+                            <div class="text-xs text-gray-500 mb-2 font-mono">
+                                {{ item.class_info.class_code }} 
+                                {% if item.class_info.class_type %} · {{ item.class_info.class_type }}{% endif %}
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-sm font-semibold text-gray-700 mt-2">
+                                <span class="bg-gray-100 px-2 py-0.5 rounded text-xs">Thứ {{ item.class_info.day }}</span>
+                                <span>{{ item.class_info.start_time }} - {{ item.class_info.end_time }}</span>
+                            </div>
+                            
+                            <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                <i class="fas fa-map-marker-alt"></i> {{ item.class_info.room }}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                        <div class="col-span-3 text-center py-20 text-gray-400">
+                            <div class="mb-4 text-6xl opacity-20"><i class="fas fa-calendar-plus"></i></div>
+                            <p>Chưa có lớp nào.</p>
+                            <p class="text-sm">Hãy tìm kiếm và chọn lớp ở cột bên trái.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
